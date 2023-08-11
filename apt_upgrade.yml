@@ -1,0 +1,14 @@
+---
+- name: Patch Ubuntu system
+  hosts: ubuntu
+  become: true
+  gather_facts: yes
+  tasks:
+      - name: "Patching Time"
+        debug:
+            msg:
+              - timestamp: "{{ ansible_date_time.iso8601_micro }}"
+        run_once: true
+
+      - name: Apply upgrade
+        apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
