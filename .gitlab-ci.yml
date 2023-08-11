@@ -1,0 +1,64 @@
+---
+#DefineStages to run
+stages:
+  - Do_Prechecks
+  - Start_Patching
+  - Do_Postchecks
+variables:
+  ANSIBLE_HOST_KEY_CHECKING: "False"
+  SSH_PATH: ~/.ssh/
+Do_Prechecks:
+  stage: Do_Prechecks
+  before_script:
+    - command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install
+      openssh-client -y )
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - apt-get update -y
+    - apt install -y software-properties-common
+    - add-apt-repository --yes --update ppa:ansible/ansible
+    - apt install -y ansible
+    - mkdir -p ~/.ssh
+    - echo $WP_PUBKEY >> ~/.ssh/id_rsa.pub
+  script:
+    - ansible-playbook -i hosts precheck.yml
+  tags:
+    - infrastructure_as_code
+Start_Patching:
+  stage: Start_Patching
+  before_script:
+    - command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install
+      openssh-client -y )
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - apt-get update -y
+    - apt install -y software-properties-common
+    - add-apt-repository --yes --update ppa:ansible/ansible
+    - apt install -y ansible
+    - mkdir -p ~/.ssh
+    - echo $WP_PUBKEY >> ~/.ssh/id_rsa.pub
+  script:
+    - ansible-playbook -i hosts apt_upgrade.yml
+  when: on_success
+  tags:
+    - infrastructure_as_code
+Do_Postchecks:
+  stage: Do_Postchecks
+  before_script:
+    - command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install
+      openssh-client -y )
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - apt-get update -y
+    - apt install -y software-properties-common
+    - add-apt-repository --yes --update ppa:ansible/ansible
+    - apt install -y ansible
+    - mkdir -p ~/.ssh
+    - echo $WP_PUBKEY >> ~/.ssh/id_rsa.pub
+  script:
+    - ansible-playbook -i hosts postchecks.yml
+  dependencies:
+    - Start_Patching
+  when: on_success
+  tags:
+    - infrastructure_as_code
