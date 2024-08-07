@@ -1,0 +1,9 @@
+---
+extends: default
+rules:
+  indentation:
+    spaces: consistent
+    indent-sequences: true
+    check-multi-line-strings: false
+  new-line-at-end-of-file: disable
+  truthy: off
