@@ -1,3 +1,4 @@
+---
 - name: Prechecks Before Patching
   hosts: ubuntu
   become: true

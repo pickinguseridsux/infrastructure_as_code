@@ -1,12 +1,20 @@
 ---
-#DefineStages to run
 stages:
+  - Do_lint
   - Do_Prechecks
   - Start_Patching
   - Do_Postchecks
 variables:
   ANSIBLE_HOST_KEY_CHECKING: "False"
   SSH_PATH: ~/.ssh/
+Do_lint:
+  stage: Do_lint
+  image: docker:latest
+  script:
+    - apk add --no-cache yamllint
+    - yamllint -s -c .yamllint .
+  tags:
+    - infrastructure_as_code
 Do_Prechecks:
   stage: Do_Prechecks
   before_script:
@@ -19,7 +27,9 @@ Do_Prechecks:
     - add-apt-repository --yes --update ppa:ansible/ansible
     - apt install -y ansible
     - mkdir -p ~/.ssh
+    - touch ~/.ssh/id_rsa
     - echo $WP_PUBKEY >> ~/.ssh/id_rsa.pub
+    - chmod 600 ~/.ssh/id_rsa
   script:
     - ansible-playbook -i hosts precheck.yml
   tags:
@@ -36,7 +46,9 @@ Start_Patching:
     - add-apt-repository --yes --update ppa:ansible/ansible
     - apt install -y ansible
     - mkdir -p ~/.ssh
+    - touch ~/.ssh/id_rsa
     - echo $WP_PUBKEY >> ~/.ssh/id_rsa.pub
+    - chmod 600 ~/.ssh/id_rsa
   script:
     - ansible-playbook -i hosts apt_upgrade.yml
   when: on_success
@@ -54,7 +66,9 @@ Do_Postchecks:
     - add-apt-repository --yes --update ppa:ansible/ansible
     - apt install -y ansible
     - mkdir -p ~/.ssh
+    - touch ~/.ssh/id_rsa
     - echo $WP_PUBKEY >> ~/.ssh/id_rsa.pub
+    - chmod 600 ~/.ssh/id_rsa
   script:
     - ansible-playbook -i hosts postchecks.yml
   dependencies:

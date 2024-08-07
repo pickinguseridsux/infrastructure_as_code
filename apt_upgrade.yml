@@ -4,11 +4,18 @@
   become: true
   gather_facts: yes
   tasks:
-      - name: "Patching Time"
-        debug:
-            msg:
-              - timestamp: "{{ ansible_date_time.iso8601_micro }}"
-        run_once: true
+    - name: "Patching Time"
+      debug:
+        msg:
+          - timestamp: "{{ ansible_date_time.iso8601_micro }}"
+      run_once: true
 
-      - name: Apply upgrade
-        apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all apt packages
+      apt:
+        upgrade: dist
+        force_apt_get: yes
